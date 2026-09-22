@@ -21,3 +21,9 @@ Paper Trading
 ## Documentation
 
 Project documentation is located in the `docs/` directory.
+
+## Market data
+
+The Python service includes a Massive daily OHLCV collector, validation, PostgreSQL
+storage, a periodic worker and a FastAPI read API. See the
+[setup, API and validation guide](docs/02-market-data.md).
