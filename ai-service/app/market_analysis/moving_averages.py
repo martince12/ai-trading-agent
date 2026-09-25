@@ -62,9 +62,18 @@ def _sma(closes: Sequence[Real], policy: SmaPolicy) -> list[float | None]:
 
 
 def _ema(closes: Sequence[Real], policy: EmaPolicy) -> list[float | None]:
+    values = _prepare(closes, policy.minimum_closes)
+    return _ema_values(values, policy)
+
+
+def _ema_values(values: tuple[float, ...], policy: EmaPolicy) -> list[float | None]:
+    """Shared EMA arithmetic for prepared closes or finite signed indicator values.
+
+    Internal callers supply at least policy.minimum_closes values. Public close-price
+    validation stays in _ema; derived series such as MACD may contain zero/negatives.
+    """
     if policy.initialization != "sma_of_first_period_values":
         raise ValueError("Unsupported EMA initialization policy")
-    values = _prepare(closes, policy.minimum_closes)
     previous = _mean(values[:policy.period])
     result: list[float | None] = [None] * (policy.period - 1) + [previous]
     alpha = policy.alpha
