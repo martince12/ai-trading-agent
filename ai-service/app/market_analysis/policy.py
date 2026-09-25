@@ -131,6 +131,47 @@ class VolumePolicy:
 VOLUME_POLICY = VolumePolicy()
 
 
+@dataclass(frozen=True)
+class AtrPolicy:
+    period: int = 14
+    initialization: str = "mean_of_first_period_true_ranges"
+    first_true_range: str = "high_minus_low"
+    smoothing: str = "wilder"
+
+    @property
+    def minimum_candles(self) -> int:
+        return self.period
+
+    @property
+    def alpha(self) -> float:
+        return 1 / self.period
+
+
+@dataclass(frozen=True)
+class RealizedVolatilityPolicy:
+    return_period: int = 20
+    annualization_factor: int = 252
+    ddof: int = 0
+
+    @property
+    def minimum_closes(self) -> int:
+        return self.return_period + 1
+
+
+ATR_POLICY = AtrPolicy()
+REALIZED_VOLATILITY_POLICY = RealizedVolatilityPolicy()
+
+
+def is_atr_ready(candle_count: int) -> bool:
+    _validate_candle_count(candle_count)
+    return candle_count >= ATR_POLICY.minimum_candles
+
+
+def is_realized_volatility_ready(candle_count: int) -> bool:
+    _validate_candle_count(candle_count)
+    return candle_count >= REALIZED_VOLATILITY_POLICY.minimum_closes
+
+
 def is_volume_ready(candle_count: int) -> bool:
     """Count readiness only; an all-zero window still has an undefined ratio."""
     _validate_candle_count(candle_count)
