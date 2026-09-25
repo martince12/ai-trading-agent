@@ -117,6 +117,26 @@ class FeatureVectorPolicy:
 FEATURE_VECTOR_POLICY = FeatureVectorPolicy()
 
 
+@dataclass(frozen=True)
+class VolumePolicy:
+    period: int = 20
+    include_current: bool = True
+    zero_average_ratio: None = None
+
+    @property
+    def minimum_values(self) -> int:
+        return self.period
+
+
+VOLUME_POLICY = VolumePolicy()
+
+
+def is_volume_ready(candle_count: int) -> bool:
+    """Count readiness only; an all-zero window still has an undefined ratio."""
+    _validate_candle_count(candle_count)
+    return candle_count >= VOLUME_POLICY.minimum_values
+
+
 def get_indicator_policy(indicator: Indicator | str) -> IndicatorPolicy:
     """Accept an Indicator member or its exact string value; reject unknown names."""
     return INDICATOR_POLICIES[Indicator(indicator)]

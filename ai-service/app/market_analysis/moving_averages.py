@@ -15,10 +15,10 @@ from .policy import EmaPolicy, Indicator, SmaPolicy, get_indicator_policy
 class InsufficientHistoryError(ValueError):
     """The input cannot produce even one complete indicator value."""
 
-    def __init__(self, required: int, available: int):
+    def __init__(self, required: int, available: int, *, unit: str = "closes"):
         self.required = required
         self.available = available
-        super().__init__(f"Insufficient history: requires {required} closes; received {available}")
+        super().__init__(f"Insufficient history: requires {required} {unit}; received {available}")
 
 
 def _validate_period(period: int) -> None:
@@ -55,6 +55,11 @@ def _mean(values: tuple[float, ...]) -> float:
 
 def _sma(closes: Sequence[Real], policy: SmaPolicy) -> list[float | None]:
     values = _prepare(closes, policy.minimum_closes)
+    return _sma_values(values, policy)
+
+
+def _sma_values(values: tuple[float, ...], policy: SmaPolicy) -> list[float | None]:
+    """Shared trailing mean for prepared closes or nonnegative volumes."""
     result: list[float | None] = [None] * (policy.period - 1)
     for end in range(policy.period, len(values) + 1):
         result.append(_mean(values[end - policy.period:end]))
