@@ -13,7 +13,7 @@ from .policy import EmaPolicy, Indicator, SmaPolicy, get_indicator_policy
 
 
 class InsufficientHistoryError(ValueError):
-    """The input cannot produce even one complete moving-average value."""
+    """The input cannot produce even one complete indicator value."""
 
     def __init__(self, required: int, available: int):
         self.required = required
@@ -21,11 +21,15 @@ class InsufficientHistoryError(ValueError):
         super().__init__(f"Insufficient history: requires {required} closes; received {available}")
 
 
-def _prepare(closes: Sequence[Real], period: int) -> tuple[float, ...]:
+def _validate_period(period: int) -> None:
     if isinstance(period, bool) or not isinstance(period, int):
         raise TypeError("period must be an integer")
     if period <= 0:
         raise ValueError("period must be positive")
+
+
+def _prepare(closes: Sequence[Real], period: int) -> tuple[float, ...]:
+    _validate_period(period)
     if isinstance(closes, (str, bytes)):
         raise TypeError("closes must be a sequence of real numbers")
     values = []

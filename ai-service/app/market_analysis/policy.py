@@ -47,6 +47,7 @@ class RsiPolicy:
     period: int
     initialization: str = "mean_gain_and_loss_of_first_period_price_changes"
     smoothing: str = "wilder"
+    flat_market_value: float = 50.0
 
     @property
     def minimum_closes(self) -> int:
