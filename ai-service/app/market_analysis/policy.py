@@ -5,6 +5,8 @@ The caller remains responsible for data quality and trading-session completeness
 """
 from dataclasses import dataclass
 from enum import StrEnum
+from math import isfinite
+from numbers import Real
 from types import MappingProxyType
 from typing import Mapping
 
@@ -192,6 +194,41 @@ class TrendPolicy:
 
 
 TREND_POLICY = TrendPolicy()
+
+
+@dataclass(frozen=True)
+class SupportResistancePolicy:
+    swing_window: int = 2
+    cluster_tolerance_pct: float = 1.0
+    minimum_touches: int = 2
+
+    def __post_init__(self) -> None:
+        for name in ("swing_window", "minimum_touches"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise TypeError(f"{name} must be an integer")
+            if value <= 0:
+                raise ValueError(f"{name} must be positive")
+        tolerance = self.cluster_tolerance_pct
+        if isinstance(tolerance, bool) or not isinstance(tolerance, Real):
+            raise TypeError("cluster_tolerance_pct must be a real number")
+        if not isfinite(tolerance) or tolerance < 0:
+            raise ValueError("cluster_tolerance_pct must be finite and nonnegative")
+
+    @property
+    def minimum_candles(self) -> int:
+        # Enough to evaluate a confirmed swing, not a guarantee of valid levels.
+        return 2 * self.swing_window + 1
+
+
+SUPPORT_RESISTANCE_POLICY = SupportResistancePolicy()
+
+
+def is_support_resistance_ready(
+    candle_count: int, policy: SupportResistancePolicy = SUPPORT_RESISTANCE_POLICY,
+) -> bool:
+    _validate_candle_count(candle_count)
+    return candle_count >= policy.minimum_candles
 
 
 def is_trend_ready(candle_count: int) -> bool:
