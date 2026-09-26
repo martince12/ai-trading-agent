@@ -162,6 +162,53 @@ ATR_POLICY = AtrPolicy()
 REALIZED_VOLATILITY_POLICY = RealizedVolatilityPolicy()
 
 
+@dataclass(frozen=True)
+class MomentumPolicy:
+    period: int
+
+    @property
+    def minimum_closes(self) -> int:
+        return self.period + 1
+
+
+MOMENTUM10_POLICY = MomentumPolicy(period=10)
+MOMENTUM20_POLICY = MomentumPolicy(period=20)
+
+
+@dataclass(frozen=True)
+class TrendPolicy:
+    slope_lookback: int = 5
+    bullish_threshold: int = 3
+    bearish_threshold: int = -3
+
+    @property
+    def minimum_closes(self) -> int:
+        return max(
+            INDICATOR_POLICIES[Indicator.EMA20].minimum_closes + self.slope_lookback,
+            INDICATOR_POLICIES[Indicator.EMA50].minimum_closes + self.slope_lookback,
+            INDICATOR_POLICIES[Indicator.MACD_12_26_9].minimum_closes,
+            MOMENTUM20_POLICY.minimum_closes,
+        )
+
+
+TREND_POLICY = TrendPolicy()
+
+
+def is_trend_ready(candle_count: int) -> bool:
+    _validate_candle_count(candle_count)
+    return candle_count >= TREND_POLICY.minimum_closes
+
+
+def is_momentum10_ready(candle_count: int) -> bool:
+    _validate_candle_count(candle_count)
+    return candle_count >= MOMENTUM10_POLICY.minimum_closes
+
+
+def is_momentum20_ready(candle_count: int) -> bool:
+    _validate_candle_count(candle_count)
+    return candle_count >= MOMENTUM20_POLICY.minimum_closes
+
+
 def is_atr_ready(candle_count: int) -> bool:
     _validate_candle_count(candle_count)
     return candle_count >= ATR_POLICY.minimum_candles
