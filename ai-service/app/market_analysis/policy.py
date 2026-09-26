@@ -165,6 +165,16 @@ REALIZED_VOLATILITY_POLICY = RealizedVolatilityPolicy()
 
 
 @dataclass(frozen=True)
+class VolatilityRegimePolicy:
+    lookback: int = 100
+    lower_percentile: float = 33.0
+    upper_percentile: float = 67.0
+
+
+VOLATILITY_REGIME_POLICY = VolatilityRegimePolicy()
+
+
+@dataclass(frozen=True)
 class MomentumPolicy:
     period: int
 

@@ -41,6 +41,7 @@ dataclasses, direct dataclass construction does not validate its arguments.
 | atr14 | float |
 | atr14_pct | float |
 | realized_volatility_20 | float |
+| volatility_state | VolatilityState (LOW, MEDIUM, HIGH) |
 | momentum_10_pct | float |
 | momentum_20_pct | float |
 | trend_state | TrendState (BULLISH, NEUTRAL, BEARISH) |
@@ -64,10 +65,11 @@ Validation delegates to feature engineering and its existing analysis dependenci
   neither sorted nor modified. Session completeness remains the caller's responsibility.
 - Missing support/resistance and associated distances remain `None`.
 - Flat-band position and zero-average-volume ratios/percentages remain `None`.
-- Numeric types, precision and the `TrendState` enum are preserved. Annualized
+- Numeric types, precision and the `TrendState` / `VolatilityState` enums are preserved. Annualized
   realized volatility remains a decimal, not a formatted percentage string.
 
-The vector adds no trading decisions, confidence scores, AI or volatility classes.
+The vector adds no trading decisions, confidence scores or AI. Volatility state is
+inherited from engineered features alongside the unchanged raw volatility and ATR percentage.
 For a historical vector, supply only the history ending at the intended candle.
 
 Run the complete suite from `ai-service`:

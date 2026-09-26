@@ -14,6 +14,7 @@ from .rsi import rsi14
 from .support_resistance import detect_support_resistance
 from .trend import TrendState, latest_trend
 from .volatility import _prepare_candles, atr14, realized_volatility20
+from .volatility_regime import VolatilityState, classify_volatility_regime
 from .volume import analyze_volume20
 
 
@@ -36,6 +37,7 @@ class EngineeredFeatures:
     atr14: float
     atr14_pct: float
     realized_volatility_20: float
+    volatility_state: VolatilityState
     momentum_10_pct: float
     momentum_20_pct: float
     trend_state: TrendState
@@ -80,6 +82,7 @@ def engineer_features(candles: Sequence[Candle]) -> EngineeredFeatures:
     volume = analyze_volume20(tuple(candle.volume for candle in values))
     atr_result = atr14(values)
     trend = latest_trend(closes)
+    realized = realized_volatility20(closes)
     result = EngineeredFeatures(
         ema20_above_ema50=fast > slow,
         ema_spread_pct=(fast / slow - 1) * 100,
@@ -94,7 +97,8 @@ def engineer_features(candles: Sequence[Candle]) -> EngineeredFeatures:
         volume_vs_average_pct=volume.volume_vs_average_pct[-1],
         atr14=cast(float, atr_result.atr[-1]),
         atr14_pct=cast(float, atr_result.atr_pct[-1]),
-        realized_volatility_20=cast(float, realized_volatility20(closes)[-1]),
+        realized_volatility_20=cast(float, realized[-1]),
+        volatility_state=classify_volatility_regime(realized),
         momentum_10_pct=cast(float, momentum10(closes)[-1]),
         momentum_20_pct=cast(float, momentum20(closes)[-1]),
         trend_state=trend.state, trend_score=trend.score,
